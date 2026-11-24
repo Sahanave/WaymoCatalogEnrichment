@@ -50,7 +50,7 @@
 #problem>*{position:relative;z-index:1}#problem>.car{position:absolute;z-index:0;right:2%;top:3%;width:min(32vw,470px);opacity:.4}
 .brand{font-family:"Space Grotesk",Inter,sans-serif;font-weight:600;font-size:clamp(22px,2.8vw,44px);color:var(--teal-l);letter-spacing:.01em}
 .io .facts{display:flex;gap:clamp(10px,1.6vw,24px);flex-wrap:wrap}.io .facts .card{flex:1 1 240px}
-.io table{font-size:clamp(12px,1.45vw,24px)}.io th,.io td{padding:.35em .6em}.io td:last-child,.io th:last-child{text-align:left;white-space:normal}.io td:nth-child(2){color:var(--mute)}.io .new{color:var(--teal);font-weight:600}
+.io table{font-size:clamp(11px,1.25vw,21px)}.io .card p{font-size:clamp(12px,1.25vw,21px)}.io .card h3{font-size:clamp(15px,1.6vw,26px)}.io{padding-top:clamp(20px,3vw,48px);padding-bottom:clamp(20px,3vw,48px)}.io th,.io td{padding:.35em .6em}.io td:last-child,.io th:last-child{text-align:left;white-space:normal}.io td:nth-child(2){color:var(--mute)}.io .new{color:var(--teal);font-weight:600}
 .io h2{font-size:clamp(22px,3vw,48px)}.io.light{gap:clamp(10px,1.6vw,24px)}
 </style>
 </head>
@@ -85,15 +85,15 @@
   <div class="facts">
     <div class="card"><h3>The dataset</h3><p>Waymo Open Dataset: real driving segments recorded by Waymo’s self-driving cars.</p></div>
     <div class="card"><h3>One sample</h3><p>A 20-second segment: five cameras plus LiDAR at 10 Hz. We use the front camera only.</p></div>
-    <div class="card"><h3>Already labeled by Waymo</h3><p>Boxes around vehicles, pedestrians and cyclists, plus time of day and weather per segment.</p></div>
+    <div class="card"><h3>Waymo’s own labels</h3><p>Boxes around vehicles, pedestrians and cyclists, plus time of day and weather per segment.</p></div>
   </div>
   <table>
     <tr><th>Per-frame output field</th><th>In Waymo already?</th><th>What we add</th></tr>
     <tr><td>time of day, weather</td><td>Yes, segment stats</td><td>VLM predicts per frame; scored against Waymo</td></tr>
     <tr><td>pedestrian, cyclist visible</td><td>Yes, via object boxes</td><td>VLM predicts per frame; scored against the boxes</td></tr>
-    <tr><td>road type</td><td>No</td><td class="new">New enrichment, not scored</td></tr>
-    <tr><td>ego motion</td><td>No label, only speed</td><td class="new">New label; reference derived from speed</td></tr>
-    <tr><td>changed vs previous frame</td><td>No</td><td class="new">New, from the rolling-state variant</td></tr>
+    <tr><td>road type</td><td>No</td><td><span class="new">New enrichment, not scored.</span> e.g. highway, urban street, residential, parking lot</td></tr>
+    <tr><td>ego motion</td><td>No label, only speed</td><td><span class="new">New label, reference derived from speed.</span> e.g. stopped, accelerating, braking, cruising</td></tr>
+    <tr><td>changed vs previous frame</td><td>No</td><td><span class="new">New, from the rolling-state variant.</span> e.g. pedestrian_visible: false → true</td></tr>
   </table>
 </section>
 
