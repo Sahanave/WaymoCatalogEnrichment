@@ -46,8 +46,8 @@
   .hint{position:fixed;right:14px;bottom:10px;font-size:12px;color:#8a93a3}
   @media print{html{scroll-snap-type:none}section{min-height:auto;height:100vh;break-after:page}.hint{display:none}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-.problem h1{font-size:clamp(24px,3.2vw,52px);max-width:26ch}.problem .cmp p.d{font-size:clamp(14px,1.45vw,24px)}.stats{display:flex;gap:clamp(12px,2vw,32px);flex-wrap:wrap}.stat{flex:1 1 200px}.stat b{display:block;font-family:"Space Grotesk",Inter,sans-serif;font-size:clamp(18px,2.2vw,36px);color:var(--teal-l);line-height:1.1}.stat span{font-size:clamp(12px,1.25vw,20px);color:var(--mute-d);line-height:1.3;display:block;margin-top:4px}.problem .cmp .c{padding:clamp(12px,1.6vw,24px)}#problem{position:relative;overflow:hidden;background:linear-gradient(90deg,rgba(16,24,38,.96) 0%,rgba(16,24,38,.82) 60%,rgba(16,24,38,.7) 100%),url(bg.jpg) center/cover,var(--ink)}
-#problem>*{position:relative;z-index:1}#problem>.car{position:absolute;z-index:0;right:2%;top:7%;width:min(38vw,560px);opacity:.4}
+.problem h1{font-size:clamp(24px,3.2vw,52px);max-width:26ch}.problem .cmp p.d{font-size:clamp(14px,1.45vw,24px)}.stats{display:flex;gap:clamp(12px,2vw,32px);flex-wrap:wrap}.stat{flex:1 1 200px}.stat b{display:block;font-family:"Space Grotesk",Inter,sans-serif;font-size:clamp(18px,2.2vw,36px);color:var(--teal-l);line-height:1.1}.stat span{font-size:clamp(12px,1.25vw,20px);color:var(--mute-d);line-height:1.3;display:block;margin-top:4px}.problem .cmp .c{padding:clamp(10px,1.3vw,20px)}.problem{gap:clamp(12px,1.6vw,24px)}.problem .note:last-child{font-size:clamp(11px,1.15vw,19px)}#problem{position:relative;overflow:hidden;background:linear-gradient(90deg,rgba(16,24,38,.96) 0%,rgba(16,24,38,.82) 60%,rgba(16,24,38,.7) 100%),url(bg.jpg) center/cover,var(--ink)}
+#problem>*{position:relative;z-index:1}#problem>.car{position:absolute;z-index:0;right:2%;top:3%;width:min(32vw,470px);opacity:.4}
 .brand{font-family:"Space Grotesk",Inter,sans-serif;font-weight:600;font-size:clamp(22px,2.8vw,44px);color:var(--teal-l);letter-spacing:.01em}
 </style>
 </head>
@@ -61,6 +61,7 @@
     <rect x="385" y="50" width="48" height="30" rx="8"/><path d="M395 50 Q409 36 423 50"/>
     <path d="M55 170 L85 172 M730 142 L752 160"/></g></svg>
   <p class="brand">WaymoEnrichmentCatalogue <span style="font-size:.55em;color:var(--mute-d);font-weight:500">· Problem</span></p>
+  <p class="note" style="margin-top:-.8em;font-size:clamp(12px,1.3vw,21px);max-width:60%">Inspired by NVIDIA’s Retail Catalog Enrichment blueprint: from product catalogs to driving-scene catalogs.</p>
   <h1>Better driving models need better data, and labeling it is expensive</h1>
   <div class="stats">
     <div class="stat"><b>$2.6B → $7.0B</b><span>Data labeling market, 2026 to 2031, all labeling not just driving</span></div>
