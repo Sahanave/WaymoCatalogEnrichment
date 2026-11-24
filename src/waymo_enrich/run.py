@@ -72,6 +72,15 @@ def cmd_score(args: argparse.Namespace) -> None:
         print(f"\nreport: {path}")
 
 
+def cmd_models(args) -> None:
+    from openai import OpenAI
+    from .llm import load_config, resolve_api_key
+    v = load_config(args.config)["vlm"]
+    client = OpenAI(base_url=v["base_url"], api_key=resolve_api_key(v["base_url"]))
+    for m in sorted(x.id for x in client.models.list().data):
+        print(m)
+
+
 def main(argv: list[str] | None = None) -> None:
     load_dotenv()
     logging.basicConfig(level=logging.WARNING)
@@ -108,6 +117,10 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--report-clips", type=int, default=5)
     s.add_argument("--markdown", default=None, help="also write the table to this file")
     s.set_defaults(fn=cmd_score)
+
+    m = sub.add_parser("models", help="list model ids served by the configured endpoint")
+    m.add_argument("--config", default=None)
+    m.set_defaults(fn=cmd_models)
 
     args = p.parse_args(argv)
     args.fn(args)

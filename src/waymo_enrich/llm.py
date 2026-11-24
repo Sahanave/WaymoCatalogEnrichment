@@ -62,16 +62,25 @@ def image_part(jpeg_bytes: bytes) -> dict:
     return {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
 
 
+def resolve_api_key(base_url: str) -> str:
+    """Pick the key that matches the endpoint: NEBIUS_API_KEY for Nebius Token Factory, else NGC_API_KEY."""
+    if "nebius" in base_url:
+        key, name = os.getenv("NEBIUS_API_KEY"), "NEBIUS_API_KEY"
+    else:
+        key, name = os.getenv("NGC_API_KEY") or os.getenv("NVIDIA_API_KEY"), "NGC_API_KEY"
+    if not key:
+        raise RuntimeError(f"{name} is not set (see .env.example)")
+    return key
+
+
 class VLMClient:
     """Thin wrapper: chat(content_parts, system) -> text."""
 
     def __init__(self, cfg: dict[str, Any]):
         from openai import OpenAI  # imported lazily so tests/mock runs need no key
 
-        api_key = os.getenv("NGC_API_KEY") or os.getenv("NVIDIA_API_KEY")
-        if not api_key:
-            raise RuntimeError("NGC_API_KEY is not set (see .env.example)")
         v = cfg["vlm"]
+        api_key = resolve_api_key(v.get("base_url") or "")
         self.cfg = v
         self.client = OpenAI(base_url=v["base_url"], api_key=api_key)
 

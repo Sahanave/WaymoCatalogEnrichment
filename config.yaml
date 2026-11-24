@@ -1,15 +1,17 @@
-# Endpoint config. Any OpenAI-compatible chat endpoint works (NVIDIA hosted API, a local NIM, vLLM...).
-# Environment variables override these values: VLM_BASE_URL, VLM_MODEL, NGC_API_KEY.
+# Endpoint config. Any OpenAI-compatible chat endpoint works (Nebius Token Factory, NVIDIA hosted API, a local NIM, vLLM...).
+# Environment variables override these values: VLM_BASE_URL, VLM_MODEL. Keys: NEBIUS_API_KEY (Nebius) or NGC_API_KEY (NVIDIA).
+# Default: Nebius Token Factory. Run `python -m waymo_enrich models` to list the ids your account can use.
+# To use NVIDIA's hosted API instead: base_url https://integrate.api.nvidia.com/v1, model nvidia/nemotron-3-nano-omni-30b-a3b-reasoning.
 vlm:
-  base_url: "https://integrate.api.nvidia.com/v1"
-  # Same model family the retail blueprint uses. Confirm the exact id is served by your endpoint.
-  model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
+  base_url: "https://api.tokenfactory.nebius.com/v1/"
+  # Nemotron VLM listed on Nebius. Confirm the exact id with `models` before the first run.
+  model: "nvidia/Nemotron-3.5-Super-VL"
   temperature: 0.1
   top_p: 0.9
   max_tokens: 1024
-  # The blueprint sends chat_template_kwargs.enable_thinking=false for its labeling calls.
-  # Set to null to omit the field if your endpoint rejects it.
-  enable_thinking: false
+  # The blueprint sends chat_template_kwargs.enable_thinking=false on NVIDIA's endpoint.
+  # Omitted by default for Nebius (unknown if it accepts the field); set false to send it.
+  enable_thinking: null
   retries: 2
 
 # Ground-truth thresholds used when deriving ego_motion from Waymo velocity (see scripts/extract_waymo.py).

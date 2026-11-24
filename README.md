@@ -30,7 +30,7 @@ a stable label that matches reality has a flip rate near the ground-truth flip r
 
 ```bash
 pip install -e ".[dev]"
-cp .env.example .env            # add NGC_API_KEY
+cp .env.example .env            # add NEBIUS_API_KEY
 pytest                          # 10 offline tests, no key or data needed
 
 # 1. Get 10-15 Perception segments (needs Waymo terms accepted + gcloud auth)
