@@ -27,6 +27,10 @@ def load_config(path: Optional[str | Path] = None) -> dict[str, Any]:
     vlm = cfg.setdefault("vlm", {})
     vlm["base_url"] = os.getenv("VLM_BASE_URL") or vlm.get("base_url")
     vlm["model"] = os.getenv("VLM_MODEL") or vlm.get("model")
+    llm = cfg.setdefault("llm", {})  # text-only structuring model; inherits endpoint/sampling from vlm
+    for k in ("base_url", "temperature", "top_p", "max_tokens", "enable_thinking", "retries"):
+        llm.setdefault(k, vlm.get(k))
+    llm["model"] = os.getenv("LLM_MODEL") or llm.get("model")
     cfg.setdefault("ego_motion", {"stopped_speed_mps": 0.5, "accel_threshold_mps2": 1.0})
     return cfg
 
@@ -76,10 +80,10 @@ def resolve_api_key(base_url: str) -> str:
 class VLMClient:
     """Thin wrapper: chat(content_parts, system) -> text."""
 
-    def __init__(self, cfg: dict[str, Any]):
+    def __init__(self, cfg: dict[str, Any], section: str = "vlm"):
         from openai import OpenAI  # imported lazily so tests/mock runs need no key
 
-        v = cfg["vlm"]
+        v = cfg[section]
         api_key = resolve_api_key(v.get("base_url") or "")
         self.cfg = v
         self.client = OpenAI(base_url=v["base_url"], api_key=api_key)

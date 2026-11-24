@@ -10,9 +10,15 @@ vlm:
   top_p: 0.9
   max_tokens: 1024
   # The blueprint sends chat_template_kwargs.enable_thinking=false on NVIDIA's endpoint.
-  # Omitted by default for Nebius (unknown if it accepts the field); set false to send it.
-  enable_thinking: null
+  # Nebius accepts it (verified). Without it the reasoning model can exhaust max_tokens and return empty content.
+  enable_thinking: false
   retries: 2
+
+# Text-only structuring model, used by `label --commentary` (the VLM writes the commentary, this model turns it into
+# labels without seeing the image). Endpoint and sampling default to the vlm values above.
+llm:
+  model: "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B"
+  max_tokens: 512
 
 # Ground-truth thresholds used when deriving ego_motion from Waymo velocity (see scripts/extract_waymo.py).
 ego_motion:

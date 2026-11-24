@@ -24,9 +24,16 @@ from .report import build_report
 def cmd_label(args: argparse.Namespace) -> None:
     cfg = load_config(args.config)
     client = MockClient() if args.mock else VLMClient(cfg)
+    if args.mode == "temporal" and not args.base:
+        raise SystemExit("--mode temporal needs --base <per_frame run dir>")
+    llm_client = None
+    if args.commentary:
+        if args.mode != "rolling":
+            raise SystemExit("--commentary only applies to --mode rolling")
+        llm_client = client if args.mock else VLMClient(cfg, section="llm")
     settings = Settings(
         mode=args.mode, prev_frames=args.prev_frames, use_ego=args.use_ego,
-        refresh_every=args.refresh_every, retries=cfg["vlm"].get("retries", 2),
+        refresh_every=args.refresh_every, commentary=args.commentary, base_dir=args.base, retries=cfg["vlm"].get("retries", 2),
     )
     clips = list_clips(args.clips, args.limit)
     if not clips:
@@ -38,7 +45,7 @@ def cmd_label(args: argparse.Namespace) -> None:
         target = out / f"{clip.clip_id}.json"
         if target.exists() and not args.overwrite:
             return clip.clip_id, "skipped (exists)"
-        res = label_clip(clip, client, settings)
+        res = label_clip(clip, client, settings, llm_client)
         target.write_text(json.dumps(res, indent=1))
         bad = sum(1 for f in res["frames"] if not f["parse_ok"])
         return clip.clip_id, f"{len(res['frames'])} frames, {bad} parse failures"
@@ -89,11 +96,14 @@ def main(argv: list[str] | None = None) -> None:
 
     l = sub.add_parser("label", help="label clips with a VLM")
     l.add_argument("--clips", default="data/clips")
-    l.add_argument("--mode", choices=["per_frame", "rolling"], required=True)
+    l.add_argument("--mode", choices=["per_frame", "rolling", "temporal"], required=True)
+    l.add_argument("--base", default=None, help="temporal: per_frame run dir (A) whose labels each frame is compared against")
     l.add_argument("--out", required=True)
     l.add_argument("--prev-frames", type=int, default=1, help="rolling: previous keyframe images to include")
     l.add_argument("--use-ego", action="store_true", help="rolling: give the model ego speed (ego_motion then unscored)")
     l.add_argument("--refresh-every", type=int, default=0, help="rolling: drop carried state every K frames")
+    l.add_argument("--commentary", action="store_true",
+                   help="rolling: VLM writes a running commentary, then a text-only LLM (config llm:) structures it into labels")
     l.add_argument("--limit", type=int, default=None, help="only the first N clips")
     l.add_argument("--workers", type=int, default=4)
     l.add_argument("--overwrite", action="store_true")
