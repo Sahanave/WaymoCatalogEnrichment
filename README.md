@@ -74,7 +74,7 @@ Add `--mock` to `label` for an offline dry run with a fake VLM.
 ```
 src/waymo_enrich/  schema.py  llm.py  labelers.py  clips.py  waymo_v2.py  metrics.py  report.py  run.py
 scripts/download_waymo.sh
-docs/plan.html   4-slide plan and architecture deck (open in a browser, arrow keys; print to PDF)
+docs/plan.html   5-slide plan and architecture deck (open in a browser, arrow keys; print to PDF)
 tests/
 ```
 
