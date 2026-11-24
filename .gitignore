@@ -6,4 +6,4 @@ __pycache__/
 # Waymo data is licensed non-commercial and large: never commit it.
 data/
 runs/
-report.html
+/report.html

@@ -42,12 +42,19 @@ python -m waymo_enrich extract --root data/waymo_v2/training --segment <segment_
 
 # 3. Label with both variants
 python -m waymo_enrich label --mode per_frame --out runs/A_per_frame
-python -m waymo_enrich label --mode rolling   --out runs/C_rolling
-python -m waymo_enrich label --mode rolling --use-ego --out runs/C_rolling_ego   # optional
+python -m waymo_enrich label --mode temporal --base runs/A_per_frame --out runs/C_temporal   # change detection vs A
+python -m waymo_enrich label --mode rolling   --out runs/C_rolling                # optional, older variant
 
-# 4. Score and build the side-by-side report
-python -m waymo_enrich score runs/A_per_frame runs/C_rolling --report report.html   # interactive viewer: open report.html in a browser
+# 4. Score and build the report
+python -m waymo_enrich score runs/A_per_frame runs/C_temporal --report docs/report.html   # interactive viewer: open report.html in a browser
 ```
+
+## Example report
+
+[`docs/report.html`](docs/report.html) is the report from 10 Perception segments (200 keyframes): scorecards, a frame viewer
+with Waymo ground truth next to each run, and the exact input and output of every model call. Download it and open it in a
+browser. Frame images load from `data/clips/` (not committed, Waymo license is non-commercial), so they only show after you
+run the extract step locally; everything else works without them.
 
 Add `--mock` to `label` for an offline dry run with a fake VLM.
 
