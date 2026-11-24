@@ -140,38 +140,6 @@
   </div>
 </section>
 
-<section class="dark cover" id="idea">
-  <p class="eyebrow">Hackathon plan: Waymo scenario enrichment</p>
-  <h1>Do driving-scene labels improve when the VLM remembers what came before?</h1>
-  <div class="cmp">
-    <div class="c"><p class="tag">Variant A</p><h3>Per-frame</h3>
-      <p class="d">Labels each keyframe on its own, from the current image only.</p></div>
-    <div class="c new"><p class="tag">Variant C</p><h3>Rolling state</h3>
-      <p class="d">Also sees the previous frame, its own previous labels and, optionally, ego speed.</p></div>
-  </div>
-  <p class="note">Same model, same label schema. Scored against ground truth from the Waymo Open Dataset.</p>
-</section>
-
-<section class="light" id="plan">
-  <h2>Two-hour plan and how we judge it</h2>
-  <div class="cols">
-    <div class="left"><table>
-      <tr><th>Step</th><th>Minutes</th></tr>
-      <tr><td>Download segments, extract keyframes</td><td>20</td></tr>
-      <tr><td>Label per-frame variant (A)</td><td>15</td></tr>
-      <tr><td>Label rolling-state variant (C)</td><td>20</td></tr>
-      <tr><td>Score both, build the report</td><td>15</td></tr>
-      <tr><td>Demo and write-up</td><td>20</td></tr>
-      <tr><td>Buffer for access or endpoint issues</td><td>10</td></tr>
-    </table></div>
-    <div class="right">
-      <div class="card"><h3>Accuracy and F1</h3><p>Per field against Waymo truth, including pedestrians and cyclists.</p></div>
-      <div class="card"><h3>Flip rate</h3><p>How often a label changes between adjacent frames, next to the truth.</p></div>
-      <div class="card"><h3>Fair scoring</h3><p>With ego speed given to the model, ego motion is not scored.</p></div>
-    </div>
-  </div>
-</section>
-
 <p class="hint">Arrow keys to navigate. Print to save as PDF.</p>
 <script>
   const s=[...document.querySelectorAll('section')];
