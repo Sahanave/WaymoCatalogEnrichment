@@ -112,10 +112,12 @@
     <path d="M250 287 L330 287" stroke="#4A5568" stroke-width="3" fill="none" marker-end="url(#ar)"/>
     <rect x="330" y="195" width="400" height="184" rx="14" fill="none" stroke="#127A63" stroke-width="3" stroke-dasharray="3 0"/>
     <text class="tag" x="346" y="222">Per-clip labeling, variants A and C</text>
-    <rect x="350" y="240" width="360" height="110" rx="12" fill="#D8EFE8"/><text class="h" x="366" y="285">Nemotron VLM</text><text class="s" x="366" y="311">reads the frames, returns labels as JSON</text><text class="s" x="366" y="336">A: one frame. C: two frames + A's labels</text>
+    <rect x="350" y="240" width="160" height="110" rx="12" fill="#D8EFE8"/><text class="h" x="366" y="285">Nemotron</text><text class="h" x="366" y="311">VLM</text><text class="s" x="366" y="336">structured labels</text>
+    <rect x="550" y="240" width="160" height="110" rx="12" fill="#D8EFE8"/><text class="h" x="566" y="285">Nemotron</text><text class="h" x="566" y="311">LLM</text><text class="s" x="566" y="336">catalog FAQs</text>
+    <path d="M510 295 L550 295" stroke="#4A5568" stroke-width="3" fill="none" marker-end="url(#ar)"/>
     <path d="M730 287 L800 287" stroke="#4A5568" stroke-width="3" fill="none" marker-end="url(#ar)"/>
     <rect x="800" y="150" width="380" height="270" rx="14" fill="#D8EFE8" stroke="#127A63" stroke-width="3"/>
-    <text class="h" x="820" y="184">Scenario catalog</text><text class="s" x="820" y="206">one entry per frame (illustrative)</text>
+    <text class="h" x="820" y="184">Scenario catalog</text><text class="s" x="820" y="206">one entry per frame, plus FAQs (illustrative)</text>
     <text class="m" x="820" y="244">time_of_day: dusk</text><text class="m" x="820" y="270">weather: dry</text><text class="m" x="820" y="296">road_type: urban_street</text><text class="m" x="820" y="322">ego_motion: braking</text><text class="m" x="820" y="348">pedestrian_visible: true</text><text class="m" x="820" y="374">changed: pedestrian_visible</text>
     <rect x="330" y="44" width="400" height="76" rx="14" fill="#D8EFE8" stroke="#127A63" stroke-width="3"/>
     <text class="h" x="346" y="78">Embeddings + vector DB</text><text class="s" x="346" y="104">find clips similar to a query</text>
@@ -129,7 +131,8 @@
   </svg>
   <table class="roles">
     <tr><th>Model</th><th>Role in Retail Catalog Enrichment</th><th>Role here</th></tr>
-    <tr><td>Nemotron VLM</td><td>Looks at the product image and writes down what it sees.</td><td>Labels each driving frame on its own (A), and compares two consecutive frames against A's labels to flag what changed (C).</td></tr>
+    <tr><td>Nemotron VLM</td><td>Looks at the product image and writes down what it sees.</td><td>Returns the structured labels as JSON for each driving frame: A labels each frame on its own, C compares consecutive frames against A's labels to flag what changed.</td></tr>
+    <tr><td>Nemotron LLM</td><td>Turns those notes into the catalog and writes FAQs from the catalog text, never seeing the image.</td><td>Reads all the labels in the catalog and answers questions about each clip, never seeing the video.</td></tr>
   </table>
   <div class="legend">
     <div class="lg"><div class="sq t"></div>In the pipeline</div>
