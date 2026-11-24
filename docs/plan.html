@@ -49,6 +49,9 @@
 .problem h1{font-size:clamp(24px,3.2vw,52px);max-width:26ch}.problem .cmp p.d{font-size:clamp(14px,1.45vw,24px)}.stats{display:flex;gap:clamp(12px,2vw,32px);flex-wrap:wrap}.stat{flex:1 1 200px}.stat b{display:block;font-family:"Space Grotesk",Inter,sans-serif;font-size:clamp(18px,2.2vw,36px);color:var(--teal-l);line-height:1.1}.stat span{font-size:clamp(12px,1.25vw,20px);color:var(--mute-d);line-height:1.3;display:block;margin-top:4px}.problem .cmp .c{padding:clamp(10px,1.3vw,20px)}.problem{gap:clamp(12px,1.6vw,24px)}.problem .note:last-child{font-size:clamp(11px,1.15vw,19px)}#problem{position:relative;overflow:hidden;background:linear-gradient(90deg,rgba(16,24,38,.96) 0%,rgba(16,24,38,.82) 60%,rgba(16,24,38,.7) 100%),url(bg.jpg) center/cover,var(--ink)}
 #problem>*{position:relative;z-index:1}#problem>.car{position:absolute;z-index:0;right:2%;top:3%;width:min(32vw,470px);opacity:.4}
 .brand{font-family:"Space Grotesk",Inter,sans-serif;font-weight:600;font-size:clamp(22px,2.8vw,44px);color:var(--teal-l);letter-spacing:.01em}
+.io .facts{display:flex;gap:clamp(10px,1.6vw,24px);flex-wrap:wrap}.io .facts .card{flex:1 1 240px}
+.io table{font-size:clamp(12px,1.45vw,24px)}.io th,.io td{padding:.35em .6em}.io td:last-child,.io th:last-child{text-align:left;white-space:normal}.io td:nth-child(2){color:var(--mute)}.io .new{color:var(--teal);font-weight:600}
+.io h2{font-size:clamp(22px,3vw,48px)}.io.light{gap:clamp(10px,1.6vw,24px)}
 </style>
 </head>
 <body>
@@ -77,16 +80,21 @@
   <p class="note">Sources: Mordor Intelligence (market size); NVIDIA Alpamayo FAQ, perspectives.nvidia.com (1,727 h open dataset; Alpamayo 1.5 trained on 80,000 h); Waymo Open Dataset paper; Intel Market Research ($5 per image, indicative).</p>
 </section>
 
-<section class="dark cover" id="idea">
-  <p class="eyebrow">Hackathon plan: Waymo scenario enrichment</p>
-  <h1>Do driving-scene labels improve when the VLM remembers what came before?</h1>
-  <div class="cmp">
-    <div class="c"><p class="tag">Variant A</p><h3>Per-frame</h3>
-      <p class="d">Labels each keyframe on its own, from the current image only.</p></div>
-    <div class="c new"><p class="tag">Variant C</p><h3>Rolling state</h3>
-      <p class="d">Also sees the previous frame, its own previous labels and, optionally, ego speed.</p></div>
+<section class="light io" id="io">
+  <h2>Input and output: what Waymo gives us, and what we add</h2>
+  <div class="facts">
+    <div class="card"><h3>The dataset</h3><p>Waymo Open Dataset: real driving segments recorded by Waymo’s self-driving cars.</p></div>
+    <div class="card"><h3>One sample</h3><p>A 20-second segment: five cameras plus LiDAR at 10 Hz. We use the front camera only.</p></div>
+    <div class="card"><h3>Already labeled by Waymo</h3><p>Boxes around vehicles, pedestrians and cyclists, plus time of day and weather per segment.</p></div>
   </div>
-  <p class="note">Same model, same label schema. Scored against ground truth from the Waymo Open Dataset.</p>
+  <table>
+    <tr><th>Per-frame output field</th><th>In Waymo already?</th><th>What we add</th></tr>
+    <tr><td>time of day, weather</td><td>Yes, segment stats</td><td>VLM predicts per frame; scored against Waymo</td></tr>
+    <tr><td>pedestrian, cyclist visible</td><td>Yes, via object boxes</td><td>VLM predicts per frame; scored against the boxes</td></tr>
+    <tr><td>road type</td><td>No</td><td class="new">New enrichment, not scored</td></tr>
+    <tr><td>ego motion</td><td>No label, only speed</td><td class="new">New label; reference derived from speed</td></tr>
+    <tr><td>changed vs previous frame</td><td>No</td><td class="new">New, from the rolling-state variant</td></tr>
+  </table>
 </section>
 
 <section class="light" id="arch">
@@ -111,6 +119,18 @@
     <div class="lg"><div class="sq a"></div>Reused blueprint pattern</div>
     <div class="lg"><div class="sq g"></div>Data and endpoints</div>
   </div>
+</section>
+
+<section class="dark cover" id="idea">
+  <p class="eyebrow">Hackathon plan: Waymo scenario enrichment</p>
+  <h1>Do driving-scene labels improve when the VLM remembers what came before?</h1>
+  <div class="cmp">
+    <div class="c"><p class="tag">Variant A</p><h3>Per-frame</h3>
+      <p class="d">Labels each keyframe on its own, from the current image only.</p></div>
+    <div class="c new"><p class="tag">Variant C</p><h3>Rolling state</h3>
+      <p class="d">Also sees the previous frame, its own previous labels and, optionally, ego speed.</p></div>
+  </div>
+  <p class="note">Same model, same label schema. Scored against ground truth from the Waymo Open Dataset.</p>
 </section>
 
 <section class="light" id="plan">
