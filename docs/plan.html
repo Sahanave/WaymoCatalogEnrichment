@@ -52,6 +52,8 @@
 .io .facts{display:flex;gap:clamp(10px,1.6vw,24px);flex-wrap:wrap}.io .facts .card{flex:1 1 240px}
 .io table{font-size:clamp(11px,1.25vw,21px)}.io .card p{font-size:clamp(12px,1.25vw,21px)}.io .card h3{font-size:clamp(15px,1.6vw,26px)}.io{padding-top:clamp(20px,3vw,48px);padding-bottom:clamp(20px,3vw,48px)}.io th,.io td{padding:.35em .6em}.io td:last-child,.io th:last-child{text-align:left;white-space:normal}.io td:nth-child(2){color:var(--mute)}.io .new{color:var(--teal);font-weight:600}
 .io h2{font-size:clamp(22px,3vw,48px)}.io.light{gap:clamp(10px,1.6vw,24px)}
+.pipe svg{width:100%;height:auto;max-height:68vh}.pipe svg text{font-family:Inter,system-ui,sans-serif;fill:#14213D}.pipe .h{font-weight:600;font-size:21px}.pipe .s{font-size:16px;fill:#4A5568}.pipe .m{font-size:17px;font-family:ui-monospace,Menlo,monospace}.pipe .tag{font-size:15px;font-weight:600;fill:#127A63}
+.pipe h2{font-size:clamp(22px,3vw,48px)}.pipe.light{gap:clamp(8px,1.2vw,18px);padding-top:clamp(18px,2.6vw,40px);padding-bottom:clamp(18px,2.6vw,40px)}
 </style>
 </head>
 <body>
@@ -97,27 +99,38 @@
   </table>
 </section>
 
-<section class="light" id="arch">
+<section class="light pipe" id="arch">
   <h2>How the pipeline fits together</h2>
-  <div class="row"><p class="rl">Data</p><div class="boxes">
-    <div class="bx g"><h3>Waymo v2 files</h3><p>Perception parquet</p></div>
-    <div class="bx t"><h3>Extractor</h3><p>1 Hz frames and truth</p></div>
-    <div class="bx g"><h3>Clip store</h3><p>JPEGs and meta.json</p></div></div></div>
-  <div class="row"><p class="rl">Forked blueprint backend</p><div class="boxes">
-    <div class="bx t"><h3>Labeler</h3><p>A vs C</p></div>
-    <div class="bx a"><h3>Reconcile</h3><p>Fix conflicts with metadata</p></div>
-    <div class="bx a"><h3>QA judge</h3><p>Score the labels</p></div>
-    <div class="bx a"><h3>Search</h3><p>Natural-language queries</p></div></div></div>
-  <div class="row"><p class="rl">Models</p><div class="boxes">
-    <div class="bx g"><h3>Hosted Nemotron VLM and LLM</h3><p>OpenAI-compatible API, no local GPUs</p></div></div></div>
-  <div class="row"><p class="rl">Outputs</p><div class="boxes">
-    <div class="bx t"><h3>Labels and events</h3><p>JSON per clip</p></div>
-    <div class="bx t"><h3>Scores</h3><p>A vs C metrics</p></div>
-    <div class="bx t"><h3>Demo report</h3><p>Timeline per clip</p></div></div></div>
+  <svg viewBox="0 0 1200 560" role="img" aria-label="Pipeline: driving clips and task go to Nemotron VLM then LLM, producing a scenario catalog; dashed branches for search, judge and web context">
+    <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4A5568"/></marker></defs>
+    <g fill="#E3E0D5" stroke="none">
+      <rect x="20" y="170" width="230" height="66" rx="12"/><rect x="20" y="254" width="230" height="66" rx="12"/><rect x="20" y="338" width="230" height="66" rx="12"/></g>
+    <text class="h" x="36" y="198">Driving clips</text><text class="s" x="36" y="222">Waymo front camera</text>
+    <text class="h" x="36" y="282">Task</text><text class="s" x="36" y="306">e.g. spot risky driving</text>
+    <text class="h" x="36" y="366">Ego speed</text><text class="s" x="36" y="390">optional hint</text>
+    <path d="M250 287 L330 287" stroke="#4A5568" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+    <rect x="330" y="195" width="400" height="184" rx="14" fill="none" stroke="#127A63" stroke-width="3" stroke-dasharray="3 0"/>
+    <text class="tag" x="346" y="222">Per-clip labeling, variants A and C</text>
+    <rect x="350" y="240" width="160" height="110" rx="12" fill="#D8EFE8"/><text class="h" x="366" y="285">Nemotron</text><text class="h" x="366" y="311">VLM</text><text class="s" x="366" y="336">observes frames</text>
+    <rect x="550" y="240" width="160" height="110" rx="12" fill="#D8EFE8"/><text class="h" x="566" y="285">Nemotron</text><text class="h" x="566" y="311">LLM</text><text class="s" x="566" y="336">structures labels</text>
+    <path d="M510 295 L550 295" stroke="#4A5568" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+    <path d="M730 287 L800 287" stroke="#4A5568" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+    <rect x="800" y="150" width="380" height="270" rx="14" fill="#D8EFE8" stroke="#127A63" stroke-width="3"/>
+    <text class="h" x="820" y="184">Scenario catalog</text><text class="s" x="820" y="206">one entry per frame (illustrative)</text>
+    <text class="m" x="820" y="244">time_of_day: dusk</text><text class="m" x="820" y="270">weather: dry</text><text class="m" x="820" y="296">road_type: urban_street</text><text class="m" x="820" y="322">ego_motion: braking</text><text class="m" x="820" y="348">pedestrian_visible: true</text><text class="m" x="820" y="374">changed: pedestrian_visible</text>
+    <rect x="330" y="28" width="400" height="92" rx="14" fill="none" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6"/>
+    <text class="tag" x="346" y="54" style="fill:#4A5568">Next step</text><text class="h" x="346" y="82">Embeddings + vector DB</text><text class="s" x="346" y="106">find clips similar to a query</text>
+    <path d="M530 195 L530 122" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6" fill="none" marker-end="url(#ar)"/>
+    <rect x="330" y="455" width="260" height="92" rx="14" fill="none" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6"/>
+    <text class="tag" x="346" y="481" style="fill:#4A5568">Next step</text><text class="h" x="346" y="509">VLM as a judge</text><text class="s" x="346" y="533">score labels against frames</text>
+    <path d="M420 381 L420 453" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6" fill="none" marker-end="url(#ar)"/>
+    <rect x="620" y="455" width="330" height="92" rx="14" fill="none" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6"/>
+    <text class="tag" x="636" y="481" style="fill:#4A5568">Out of scope, costlier</text><text class="h" x="636" y="509">Web search</text><text class="s" x="636" y="533">traffic and weather context</text>
+    <path d="M650 381 L650 453" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6" fill="none" marker-end="url(#ar)"/>
+  </svg>
   <div class="legend">
-    <div class="lg"><div class="sq t"></div>New code</div>
-    <div class="lg"><div class="sq a"></div>Reused blueprint pattern</div>
-    <div class="lg"><div class="sq g"></div>Data and endpoints</div>
+    <div class="lg"><div class="sq t"></div>We build and score today</div>
+    <div class="lg"><div class="sq" style="border:2px dashed #8a93a3"></div>Next step or out of scope</div>
   </div>
 </section>
 
