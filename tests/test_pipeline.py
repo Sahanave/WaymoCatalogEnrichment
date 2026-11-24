@@ -135,4 +135,5 @@ def test_report_builds(clips_root, tmp_path):
     run = _write_run(tmp_path, "A", clip_id, {"mode": "per_frame"}, [GOOD, GOOD, GOOD])
     out = build_report([run], [score_run(run, clips_root)], clips_root, tmp_path / "report.html")
     html = out.read_text()
-    assert clip_id in html and 'class="bad"' in html and "weather accuracy" in html
+    assert clip_id in html and "WaymoEnrichmentCatalogue" in html and '"weather"' in html and '"scores"' in html
+

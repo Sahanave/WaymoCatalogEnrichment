@@ -46,7 +46,7 @@ python -m waymo_enrich label --mode rolling   --out runs/C_rolling
 python -m waymo_enrich label --mode rolling --use-ego --out runs/C_rolling_ego   # optional
 
 # 4. Score and build the side-by-side report
-python -m waymo_enrich score runs/A_per_frame runs/C_rolling --report report.html
+python -m waymo_enrich score runs/A_per_frame runs/C_rolling --report report.html   # interactive viewer: open report.html in a browser
 ```
 
 Add `--mock` to `label` for an offline dry run with a fake VLM.

@@ -81,7 +81,7 @@ def score_run(run_dir: str | Path, clips_root: str | Path) -> dict[str, Any]:
             "pred_flip_rate": pred_flips[f] / pred_pairs[f] if pred_pairs[f] else None,
             "gt_flip_rate": gt_flips[f] / gt_pairs[f] if gt_pairs[f] else None,
         }
-        if f in conf and total[f]:
+        if f in conf and total[f] and sum(conf[f]):
             entry.update(_prf(*conf[f]))
         per_field[f] = entry
 
