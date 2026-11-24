@@ -1,0 +1,18 @@
+# Endpoint config. Any OpenAI-compatible chat endpoint works (NVIDIA hosted API, a local NIM, vLLM...).
+# Environment variables override these values: VLM_BASE_URL, VLM_MODEL, NGC_API_KEY.
+vlm:
+  base_url: "https://integrate.api.nvidia.com/v1"
+  # Same model family the retail blueprint uses. Confirm the exact id is served by your endpoint.
+  model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
+  temperature: 0.1
+  top_p: 0.9
+  max_tokens: 1024
+  # The blueprint sends chat_template_kwargs.enable_thinking=false for its labeling calls.
+  # Set to null to omit the field if your endpoint rejects it.
+  enable_thinking: false
+  retries: 2
+
+# Ground-truth thresholds used when deriving ego_motion from Waymo velocity (see scripts/extract_waymo.py).
+ego_motion:
+  stopped_speed_mps: 0.5
+  accel_threshold_mps2: 1.0

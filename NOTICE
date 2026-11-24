@@ -1,0 +1,11 @@
+WaymoCatalogEnrichment
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Portions adapted from the NVIDIA Retail Catalog Enrichment Blueprint
+(https://github.com/NVIDIA-AI-Blueprints/retail-catalog-enrichment),
+Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES, Apache-2.0:
+  - src/waymo_enrich/llm.py: parse_llm_json and the OpenAI-compatible client conventions.
+  - The overall analyze -> categorize -> normalize pipeline shape.
+
+This project does not redistribute any Waymo Open Dataset data. That data is licensed separately
+(non-commercial; see https://waymo.com/open/terms) and must not be committed to this repository.
