@@ -46,9 +46,23 @@
   .hint{position:fixed;right:14px;bottom:10px;font-size:12px;color:#8a93a3}
   @media print{html{scroll-snap-type:none}section{min-height:auto;height:100vh;break-after:page}.hint{display:none}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-</style>
+.problem h1{font-size:clamp(26px,3.8vw,60px);max-width:26ch}.problem .cmp p.d{font-size:clamp(14px,1.45vw,24px)}</style>
 </head>
 <body>
+
+<section class="dark cover problem" id="problem">
+  <p class="eyebrow">Problem</p>
+  <h1>Better driving models need better data, and labeling it is expensive</h1>
+  <div class="cmp">
+    <div class="c"><p class="tag">The cost</p><h3>Data is the bottleneck</h3>
+      <p class="d">Labeling data for complex tasks like autonomous driving is expensive. High-quality generated data means better models.</p></div>
+    <div class="c"><p class="tag">The precedent</p><h3>Explain the driving, not just do it</h3>
+      <p class="d">NVIDIA’s Alpamayo-R1 trains on reasoning about driving behavior, built with auto-labeling plus human review.</p></div>
+    <div class="c new"><p class="tag">Our bet</p><h3>Label scenarios at scale</h3>
+      <p class="d">A VLM turns plain driving video into labeled scenarios, making pretraining datasets cheaper to build.</p></div>
+  </div>
+  <p class="note">Source: Alpamayo-R1, NVIDIA, arXiv 2511.00088. Today we produce scenario labels; behavior explanations are the next step.</p>
+</section>
 
 <section class="dark cover" id="idea">
   <p class="eyebrow">Hackathon plan: Waymo scenario enrichment</p>
