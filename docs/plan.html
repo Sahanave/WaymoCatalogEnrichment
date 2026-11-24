@@ -52,7 +52,7 @@
 .io .facts{display:flex;gap:clamp(10px,1.6vw,24px);flex-wrap:wrap}.io .facts .card{flex:1 1 240px}
 .io table{font-size:clamp(11px,1.25vw,21px)}.io .card p{font-size:clamp(12px,1.25vw,21px)}.io .card h3{font-size:clamp(15px,1.6vw,26px)}.io{padding-top:clamp(20px,3vw,48px);padding-bottom:clamp(20px,3vw,48px)}.io th,.io td{padding:.35em .6em}.io td:last-child,.io th:last-child{text-align:left;white-space:normal}.io td:nth-child(2){color:var(--mute)}.io .new{color:var(--teal);font-weight:600}
 .io h2{font-size:clamp(22px,3vw,48px)}.io.light{gap:clamp(10px,1.6vw,24px)}
-.pipe svg{width:100%;height:auto;max-height:68vh}.pipe svg text{font-family:Inter,system-ui,sans-serif;fill:#14213D}.pipe .h{font-weight:600;font-size:21px}.pipe .s{font-size:16px;fill:#4A5568}.pipe .m{font-size:17px;font-family:ui-monospace,Menlo,monospace}.pipe .tag{font-size:15px;font-weight:600;fill:#127A63}
+.pipe svg{width:100%;height:auto;max-height:50vh}.pipe table{font-size:clamp(11px,1.2vw,20px)}.pipe th,.pipe td{padding:.3em .6em;vertical-align:top}.pipe td:last-child,.pipe th:last-child{text-align:left;white-space:normal}.pipe td:first-child{font-weight:600;white-space:nowrap}.pipe svg text{font-family:Inter,system-ui,sans-serif;fill:#14213D}.pipe .h{font-weight:600;font-size:21px}.pipe .s{font-size:16px;fill:#4A5568}.pipe .m{font-size:17px;font-family:ui-monospace,Menlo,monospace}.pipe .tag{font-size:15px;font-weight:600;fill:#127A63}
 .pipe h2{font-size:clamp(22px,3vw,48px)}.pipe.light{gap:clamp(8px,1.2vw,18px);padding-top:clamp(18px,2.6vw,40px);padding-bottom:clamp(18px,2.6vw,40px)}
 </style>
 </head>
@@ -101,7 +101,7 @@
 
 <section class="light pipe" id="arch">
   <h2>How the pipeline fits together</h2>
-  <svg viewBox="0 0 1200 560" role="img" aria-label="Pipeline: driving clips and task go to Nemotron VLM then LLM, producing a scenario catalog; dashed branches for search, judge and web context">
+  <svg viewBox="0 0 1200 560" role="img" aria-label="Pipeline: driving clips and task go to Nemotron VLM then LLM, producing a scenario catalog, with embeddings search, a VLM judge, and web search out of scope">
     <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4A5568"/></marker></defs>
     <g fill="#E3E0D5" stroke="none">
       <rect x="20" y="170" width="230" height="66" rx="12"/><rect x="20" y="254" width="230" height="66" rx="12"/><rect x="20" y="338" width="230" height="66" rx="12"/></g>
@@ -118,19 +118,24 @@
     <rect x="800" y="150" width="380" height="270" rx="14" fill="#D8EFE8" stroke="#127A63" stroke-width="3"/>
     <text class="h" x="820" y="184">Scenario catalog</text><text class="s" x="820" y="206">one entry per frame (illustrative)</text>
     <text class="m" x="820" y="244">time_of_day: dusk</text><text class="m" x="820" y="270">weather: dry</text><text class="m" x="820" y="296">road_type: urban_street</text><text class="m" x="820" y="322">ego_motion: braking</text><text class="m" x="820" y="348">pedestrian_visible: true</text><text class="m" x="820" y="374">changed: pedestrian_visible</text>
-    <rect x="330" y="28" width="400" height="92" rx="14" fill="none" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6"/>
-    <text class="tag" x="346" y="54" style="fill:#4A5568">Next step</text><text class="h" x="346" y="82">Embeddings + vector DB</text><text class="s" x="346" y="106">find clips similar to a query</text>
-    <path d="M530 195 L530 122" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6" fill="none" marker-end="url(#ar)"/>
-    <rect x="330" y="455" width="260" height="92" rx="14" fill="none" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6"/>
-    <text class="tag" x="346" y="481" style="fill:#4A5568">Next step</text><text class="h" x="346" y="509">VLM as a judge</text><text class="s" x="346" y="533">score labels against frames</text>
-    <path d="M420 381 L420 453" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6" fill="none" marker-end="url(#ar)"/>
-    <rect x="620" y="455" width="330" height="92" rx="14" fill="none" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6"/>
-    <text class="tag" x="636" y="481" style="fill:#4A5568">Out of scope, costlier</text><text class="h" x="636" y="509">Web search</text><text class="s" x="636" y="533">traffic and weather context</text>
+    <rect x="330" y="44" width="400" height="76" rx="14" fill="#D8EFE8" stroke="#127A63" stroke-width="3"/>
+    <text class="h" x="346" y="78">Embeddings + vector DB</text><text class="s" x="346" y="104">find clips similar to a query</text>
+    <path d="M530 195 L530 122" stroke="#4A5568" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+    <rect x="330" y="455" width="260" height="76" rx="14" fill="#D8EFE8" stroke="#127A63" stroke-width="3"/>
+    <text class="h" x="346" y="489">VLM as a judge</text><text class="s" x="346" y="515">score labels against frames</text>
+    <path d="M420 381 L420 453" stroke="#4A5568" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+    <rect x="620" y="455" width="400" height="76" rx="14" fill="none" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6"/>
+    <text class="h" x="636" y="489">Web search: out of scope for now</text><text class="s" x="636" y="515">traffic and weather context, costlier to run</text>
     <path d="M650 381 L650 453" stroke="#8a93a3" stroke-width="2.5" stroke-dasharray="8 6" fill="none" marker-end="url(#ar)"/>
   </svg>
+  <table class="roles">
+    <tr><th>Model</th><th>Role in Retail Catalog Enrichment</th><th>Role here</th></tr>
+    <tr><td>Nemotron VLM</td><td>Looks at the product image and writes down what it sees.</td><td>Looks at each driving frame, alone (A) or with the previous frame and labels (C), and answers visual questions the labels miss.</td></tr>
+    <tr><td>Nemotron LLM</td><td>Turns those notes into the catalog and writes FAQs from the catalog text, never seeing the image.</td><td>Structures the notes into the six labels and answers questions over the catalog text.</td></tr>
+  </table>
   <div class="legend">
-    <div class="lg"><div class="sq t"></div>We build and score today</div>
-    <div class="lg"><div class="sq" style="border:2px dashed #8a93a3"></div>Next step or out of scope</div>
+    <div class="lg"><div class="sq t"></div>In the pipeline</div>
+    <div class="lg"><div class="sq" style="border:2px dashed #8a93a3"></div>Out of scope for now</div>
   </div>
 </section>
 
