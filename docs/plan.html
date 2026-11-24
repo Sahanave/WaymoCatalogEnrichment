@@ -85,7 +85,7 @@
 <section class="light io" id="io">
   <h2>Input and output: what Waymo gives us, and what we add</h2>
   <div class="facts">
-    <div class="card"><h3>The dataset</h3><p>Waymo Open Dataset: real driving segments recorded by Waymo’s self-driving cars.</p></div>
+    <div class="card"><h3>The dataset</h3><p><a href="https://waymo.com/open/about/" style="color:#127A63">Waymo Open Dataset</a>: real driving segments recorded by Waymo’s self-driving cars. Non-commercial research licence.</p></div>
     <div class="card"><h3>One sample</h3><p>A 20-second segment: five cameras plus LiDAR at 10 Hz. We use the front camera only.</p></div>
     <div class="card"><h3>Waymo’s own labels</h3><p>Boxes around vehicles, pedestrians and cyclists, plus time of day and weather per segment.</p></div>
   </div>
@@ -97,6 +97,7 @@
     <tr><td>ego motion</td><td>No label, only speed</td><td><span class="new">New label, reference derived from speed.</span> e.g. stopped, accelerating, braking, cruising</td></tr>
     <tr><td>changed vs previous frame</td><td>No</td><td><span class="new">New, from the rolling-state variant.</span> e.g. pedestrian_visible: false → true</td></tr>
   </table>
+  <p class="hint" style="position:static;font-size:clamp(11px,1.1vw,18px)">Source: <a href="https://waymo.com/open/about/" style="color:#4A5568">waymo.com/open/about</a>. Perception data: 5 cameras and LiDAR, 20-second segments at 10 Hz, with 2D and 3D boxes for vehicles, pedestrians and cyclists.</p>
 </section>
 
 <section class="light pipe" id="arch">
