@@ -64,6 +64,20 @@
   <p class="note">Source: Alpamayo-R1, NVIDIA, arXiv 2511.00088. Today we produce scenario labels; behavior explanations are the next step.</p>
 </section>
 
+<section class="dark cover problem" id="evidence">
+  <p class="eyebrow">Why this should work</p>
+  <h1>Recent NVIDIA work supports auto-labeling plus judge-based data selection</h1>
+  <div class="cmp">
+    <div class="c"><p class="tag">Auto-labels at scale</p><h3>Big model labels, small model learns</h3>
+      <p class="d">Alpamayo 2 Edge (2B parameters) is distilled from Chain-of-Causation autolabels made by the larger Alpamayo 2 Super.</p></div>
+    <div class="c"><p class="tag">Judges pick the data</p><h3>Mid-range scores teach the most</h3>
+      <p class="d">A human-calibrated judge scores reasoning. Resampling by score lifted the mid-score share of a curated set from 27% to 81%.</p></div>
+    <div class="c new"><p class="tag">What we borrow</p><h3>Label, judge, then select</h3>
+      <p class="d">Our QA judge plays that role: score labels against camera frames, then curate clips by score.</p></div>
+  </div>
+  <p class="note">Source: NVIDIA Developer Blog post on running AV reasoning models within onboard compute and latency limits.</p>
+</section>
+
 <section class="dark cover" id="idea">
   <p class="eyebrow">Hackathon plan: Waymo scenario enrichment</p>
   <h1>Do driving-scene labels improve when the VLM remembers what came before?</h1>
