@@ -35,7 +35,6 @@ class Settings:
     refresh_every: int = 0        # rolling: drop carried state every K frames (0 = never) to limit error carry-over
     retries: int = 2
     base_dir: Optional[str] = None  # temporal: run dir of per_frame labels (A) to compare each frame against
-    commentary: bool = False      # rolling: VLM writes a commentary, then a text-only LLM structures it into labels
 
 
 def _per_frame_parts(frame) -> list[dict]:
@@ -78,54 +77,6 @@ def _rolling_parts(clip: Clip, k: int, state: Optional[dict], s: Settings) -> li
     )
     parts.append({"type": "text", "text": "\n".join(lines)})
     return parts
-
-
-OBSERVER_SYSTEM = (
-    "You are the vision model for an autonomous-driving dataset. You watch a front-facing car camera and narrate what is "
-    "happening, like a running commentary. Describe only what is visible. Never invent objects."
-)
-STRUCTURER_SYSTEM = (
-    "You turn a driving-scene commentary into structured labels. You cannot see the images; rely only on the "
-    "commentary text. Return ONLY one JSON object, no markdown."
-)
-
-
-def _commentary_parts(clip: Clip, k: int, prev_comment: Optional[str], state: Optional[dict], s: Settings) -> list[dict]:
-    cur = clip.frames[k]
-    parts: list[dict] = []
-    for j in range(max(0, k - s.prev_frames), k):
-        parts.append({"type": "text", "text": f"PREVIOUS FRAME (t={clip.frames[j].t_s:.1f}s):"})
-        parts.append(image_part(clip.frames[j].image_bytes()))
-    parts.append({"type": "text", "text": f"CURRENT FRAME (t={cur.t_s:.1f}s):"})
-    parts.append(image_part(cur.image_bytes()))
-    lines = []
-    if prev_comment:
-        lines.append(f"YOUR COMMENTARY FOR THE PREVIOUS FRAME: {prev_comment}")
-    lines.append(
-        "Write a 2-4 sentence commentary on the CURRENT frame: lighting/time of day, weather (dry or rain: wet road, "
-        "droplets, spray), road type, any pedestrians or cyclists, other vehicles, and how the camera vehicle is moving "
-        "(stopped, accelerating, braking, cruising) judged from the change since the previous frame. "
-        "Say explicitly what changed since the previous frame. Plain text, no JSON."
-    )
-    parts.append({"type": "text", "text": "\n".join(lines)})
-    return parts
-
-
-def _structure_prompt(comment: str, state: Optional[dict], cur, prev_speed, s: Settings) -> str:
-    lines = [SCHEMA_PROMPT, "", f"COMMENTARY ON THE CURRENT FRAME (t={cur.t_s:.1f}s):", comment, ""]
-    if state is None:
-        lines.append("PREVIOUS STATE: none. Label the current frame from the commentary.")
-    else:
-        lines += ["PREVIOUS STATE (labels for the previous frame):", json.dumps(state, ensure_ascii=False),
-                  "Keep each previous value unless the commentary reports a clear change."]
-    if s.use_ego and cur.speed_mps is not None:
-        ego = f"EGO SPEED now: {cur.speed_mps:.1f} m/s"
-        if prev_speed is not None:
-            ego += f"; one keyframe ago: {prev_speed:.1f} m/s"
-        lines.append(ego + ".")
-    lines.append("Return JSON with keys: time_of_day, weather, road_type, pedestrian_visible, cyclist_visible, ego_motion, "
-                 "notable_event, changed (list of field names whose value differs from the previous state).")
-    return "\n".join(lines)
 
 
 def _trace_input(parts: list[dict], clip: Clip, k: int, n_prev: int) -> dict:
@@ -220,49 +171,12 @@ def _call(client, parts: list[dict], retries: int, system: str = SYSTEM) -> tupl
     return None, raw, err
 
 
-def _observe(client, parts: list[dict], retries: int) -> tuple[str, Optional[str]]:
-    err = None
-    for attempt in range(retries + 1):
-        try:
-            text = client.chat(parts, system=OBSERVER_SYSTEM)
-            if text:
-                return text, None
-            err = "empty commentary"
-        except Exception as exc:
-            err = f"{type(exc).__name__}: {exc}"
-            logger.warning("VLM commentary failed (attempt %d): %s", attempt + 1, err)
-    return "", err
-
-
-def label_clip(clip: Clip, client, settings: Settings, llm_client=None) -> dict[str, Any]:
+def label_clip(clip: Clip, client, settings: Settings) -> dict[str, Any]:
     if settings.mode == "temporal":
         return _label_temporal(clip, client, settings)
     frames_out: list[dict[str, Any]] = []
     state: Optional[dict] = None
-    prev_comment: Optional[str] = None
     for k, frame in enumerate(clip.frames):
-        if settings.mode == "rolling" and settings.commentary:
-            if settings.refresh_every and k % settings.refresh_every == 0:
-                state, prev_comment = None, None
-            vparts = _commentary_parts(clip, k, prev_comment, state, settings)
-            comment, verr = _observe(client, vparts, settings.retries)
-            trace: dict[str, Any] = {"vlm": {"input": _trace_input(vparts, clip, k, settings.prev_frames), "output": comment}}
-            parsed, raw, err = None, "", verr
-            if comment:
-                prev_speed = clip.frames[k - 1].speed_mps if k > 0 else None
-                prompt = _structure_prompt(comment, state, frame, prev_speed, settings)
-                lparts = [{"type": "text", "text": prompt}]
-                parsed, raw, err = _call(llm_client or client, lparts, settings.retries, STRUCTURER_SYSTEM)
-                trace["llm"] = {"input": {"images": [], "text": prompt}, "output": raw}
-                prev_comment = comment
-            pred = normalize(parsed)
-            changed = parsed.get("changed") if isinstance(parsed, dict) and isinstance(parsed.get("changed"), list) else []
-            if parsed is not None:
-                state = {k_: v for k_, v in pred.items() if k_ != "notable_event"}
-            frames_out.append({"i": frame.i, "t_s": frame.t_s, "pred": pred, "changed": changed,
-                               "parse_ok": parsed is not None, "error": err, "raw": raw[:1500],
-                               "commentary": comment, "trace": trace})
-            continue
         if settings.mode == "per_frame":
             parts = _per_frame_parts(frame)
         elif settings.mode == "rolling":

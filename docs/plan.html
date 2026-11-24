@@ -95,14 +95,14 @@
     <tr><td>pedestrian, cyclist visible</td><td>Yes, via object boxes</td><td>VLM predicts per frame; scored against the boxes</td></tr>
     <tr><td>road type</td><td>No</td><td><span class="new">New enrichment, not scored.</span> e.g. highway, urban street, residential, parking lot</td></tr>
     <tr><td>ego motion</td><td>No label, only speed</td><td><span class="new">New label, reference derived from speed.</span> e.g. stopped, accelerating, braking, cruising</td></tr>
-    <tr><td>changed vs previous frame</td><td>No</td><td><span class="new">New, from the rolling-state variant.</span> e.g. pedestrian_visible: false → true</td></tr>
+    <tr><td>changed vs previous frame</td><td>No</td><td><span class="new">New, from the temporal variant (C).</span> e.g. pedestrian_visible: false → true</td></tr>
   </table>
   <p class="hint" style="position:static;font-size:clamp(11px,1.1vw,18px)">Source: <a href="https://waymo.com/open/about/" style="color:#4A5568">waymo.com/open/about</a>. Perception data: 5 cameras and LiDAR, 20-second segments at 10 Hz, with 2D and 3D boxes for vehicles, pedestrians and cyclists.</p>
 </section>
 
 <section class="light pipe" id="arch">
   <h2>How the pipeline fits together</h2>
-  <svg viewBox="0 0 1200 560" role="img" aria-label="Pipeline: driving clips and task go to Nemotron VLM then LLM, producing a scenario catalog, with embeddings search, a VLM judge, and web search out of scope">
+  <svg viewBox="0 0 1200 560" role="img" aria-label="Pipeline: driving clips and task go to the Nemotron VLM, producing a scenario catalog, with embeddings search, a VLM judge, and web search out of scope">
     <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4A5568"/></marker></defs>
     <g fill="#E3E0D5" stroke="none">
       <rect x="20" y="170" width="230" height="66" rx="12"/><rect x="20" y="254" width="230" height="66" rx="12"/><rect x="20" y="338" width="230" height="66" rx="12"/></g>
@@ -112,9 +112,7 @@
     <path d="M250 287 L330 287" stroke="#4A5568" stroke-width="3" fill="none" marker-end="url(#ar)"/>
     <rect x="330" y="195" width="400" height="184" rx="14" fill="none" stroke="#127A63" stroke-width="3" stroke-dasharray="3 0"/>
     <text class="tag" x="346" y="222">Per-clip labeling, variants A and C</text>
-    <rect x="350" y="240" width="160" height="110" rx="12" fill="#D8EFE8"/><text class="h" x="366" y="285">Nemotron</text><text class="h" x="366" y="311">VLM</text><text class="s" x="366" y="336">observes frames</text>
-    <rect x="550" y="240" width="160" height="110" rx="12" fill="#D8EFE8"/><text class="h" x="566" y="285">Nemotron</text><text class="h" x="566" y="311">LLM</text><text class="s" x="566" y="336">structures labels</text>
-    <path d="M510 295 L550 295" stroke="#4A5568" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+    <rect x="350" y="240" width="360" height="110" rx="12" fill="#D8EFE8"/><text class="h" x="366" y="285">Nemotron VLM</text><text class="s" x="366" y="311">reads the frames, returns labels as JSON</text><text class="s" x="366" y="336">A: one frame. C: two frames + A's labels</text>
     <path d="M730 287 L800 287" stroke="#4A5568" stroke-width="3" fill="none" marker-end="url(#ar)"/>
     <rect x="800" y="150" width="380" height="270" rx="14" fill="#D8EFE8" stroke="#127A63" stroke-width="3"/>
     <text class="h" x="820" y="184">Scenario catalog</text><text class="s" x="820" y="206">one entry per frame (illustrative)</text>
@@ -131,8 +129,7 @@
   </svg>
   <table class="roles">
     <tr><th>Model</th><th>Role in Retail Catalog Enrichment</th><th>Role here</th></tr>
-    <tr><td>Nemotron VLM</td><td>Looks at the product image and writes down what it sees.</td><td>Looks at each driving frame, alone (A) or with the previous frame and labels (C), and answers visual questions the labels miss.</td></tr>
-    <tr><td>Nemotron LLM</td><td>Turns those notes into the catalog and writes FAQs from the catalog text, never seeing the image.</td><td>Structures the notes into the six labels and answers questions over the catalog text.</td></tr>
+    <tr><td>Nemotron VLM</td><td>Looks at the product image and writes down what it sees.</td><td>Labels each driving frame on its own (A), and compares two consecutive frames against A's labels to flag what changed (C).</td></tr>
   </table>
   <div class="legend">
     <div class="lg"><div class="sq t"></div>In the pipeline</div>

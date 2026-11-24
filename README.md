@@ -67,8 +67,8 @@ Add `--mock` to `label` for an offline dry run with a fake VLM.
 - **Assumption to confirm:** a front-camera frame with no pedestrian box means no pedestrian (not "unlabeled"). If your
   segments have unlabeled frames, pedestrian/cyclist scores will be too optimistic.
 - **Model:** `config.yaml` uses the Nemotron omni VLM id from the retail blueprint. Confirm your endpoint serves it, or set
-  `VLM_MODEL` / `VLM_BASE_URL`. If JSON parse failures are high, the blueprint's fix is a two-step flow (short free-text
-  observation, then a second call that structures it into JSON).
+  `VLM_MODEL` / `VLM_BASE_URL`. This is a reasoning model: with thinking on it can use up `max_tokens` and return empty
+  content (we saw 10% parse failures). `config.yaml` sets `enable_thinking: false`, which Nebius accepts, and failures drop to 0.
 
 ## Known limits
 

@@ -26,14 +26,9 @@ def cmd_label(args: argparse.Namespace) -> None:
     client = MockClient() if args.mock else VLMClient(cfg)
     if args.mode == "temporal" and not args.base:
         raise SystemExit("--mode temporal needs --base <per_frame run dir>")
-    llm_client = None
-    if args.commentary:
-        if args.mode != "rolling":
-            raise SystemExit("--commentary only applies to --mode rolling")
-        llm_client = client if args.mock else VLMClient(cfg, section="llm")
     settings = Settings(
         mode=args.mode, prev_frames=args.prev_frames, use_ego=args.use_ego,
-        refresh_every=args.refresh_every, commentary=args.commentary, base_dir=args.base, retries=cfg["vlm"].get("retries", 2),
+        refresh_every=args.refresh_every, base_dir=args.base, retries=cfg["vlm"].get("retries", 2),
     )
     clips = list_clips(args.clips, args.limit)
     if not clips:
@@ -45,7 +40,7 @@ def cmd_label(args: argparse.Namespace) -> None:
         target = out / f"{clip.clip_id}.json"
         if target.exists() and not args.overwrite:
             return clip.clip_id, "skipped (exists)"
-        res = label_clip(clip, client, settings, llm_client)
+        res = label_clip(clip, client, settings)
         target.write_text(json.dumps(res, indent=1))
         bad = sum(1 for f in res["frames"] if not f["parse_ok"])
         return clip.clip_id, f"{len(res['frames'])} frames, {bad} parse failures"
@@ -75,8 +70,23 @@ def cmd_score(args: argparse.Namespace) -> None:
     if args.markdown:
         Path(args.markdown).write_text(table + "\n")
     if args.report:
-        path = build_report(args.runs, scores, args.clips, args.report, max_clips=args.report_clips)
+        path = build_report(args.runs, scores, args.clips, args.report, max_clips=args.report_clips,
+                            clip_suffixes=args.report_clip, faq_dir=args.faq)
         print(f"\nreport: {path}")
+
+
+def cmd_faq(args: argparse.Namespace) -> None:
+    from .faq import run_faq
+
+    cfg = load_config(args.config)
+    llm = MockClient() if args.mock else VLMClient(cfg, section="llm")
+    done = run_faq(args.a, args.c, args.clips, args.clip, args.out, llm)
+    if not done:
+        raise SystemExit("no matching clips found in both runs")
+    for cid in done:
+        res = json.loads((Path(args.out) / f"{cid}.json").read_text())
+        graded = [i for i in res["items"] if i["correct"] is not None]
+        print(f"{cid}: {sum(1 for i in graded if i['correct'])}/{len(graded)} graded answers correct")
 
 
 def cmd_models(args) -> None:
@@ -102,8 +112,6 @@ def main(argv: list[str] | None = None) -> None:
     l.add_argument("--prev-frames", type=int, default=1, help="rolling: previous keyframe images to include")
     l.add_argument("--use-ego", action="store_true", help="rolling: give the model ego speed (ego_motion then unscored)")
     l.add_argument("--refresh-every", type=int, default=0, help="rolling: drop carried state every K frames")
-    l.add_argument("--commentary", action="store_true",
-                   help="rolling: VLM writes a running commentary, then a text-only LLM (config llm:) structures it into labels")
     l.add_argument("--limit", type=int, default=None, help="only the first N clips")
     l.add_argument("--workers", type=int, default=4)
     l.add_argument("--overwrite", action="store_true")
@@ -125,8 +133,20 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--clips", default="data/clips")
     s.add_argument("--report", default=None, help="write an HTML report here")
     s.add_argument("--report-clips", type=int, default=5)
+    s.add_argument("--report-clip", action="append", default=[], help="only show clips whose id ends with this (repeatable)")
+    s.add_argument("--faq", default=None, help="faq run dir to show in the report")
     s.add_argument("--markdown", default=None, help="also write the table to this file")
     s.set_defaults(fn=cmd_score)
+
+    q = sub.add_parser("faq", help="answer questions about clips from the A + C label catalog with a text-only LLM")
+    q.add_argument("--a", required=True, help="per_frame run dir")
+    q.add_argument("--c", required=True, help="temporal run dir")
+    q.add_argument("--clips", default="data/clips")
+    q.add_argument("--clip", action="append", default=[], help="clip id suffix to include (repeatable); default all")
+    q.add_argument("--out", default="runs/faq")
+    q.add_argument("--mock", action="store_true")
+    q.add_argument("--config", default=None)
+    q.set_defaults(fn=cmd_faq)
 
     m = sub.add_parser("models", help="list model ids served by the configured endpoint")
     m.add_argument("--config", default=None)

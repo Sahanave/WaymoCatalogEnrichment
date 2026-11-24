@@ -14,8 +14,8 @@ vlm:
   enable_thinking: false
   retries: 2
 
-# Text-only structuring model, used by `label --commentary` (the VLM writes the commentary, this model turns it into
-# labels without seeing the image). Endpoint and sampling default to the vlm values above.
+# Text-only model for `faq`: answers questions about a clip from the label catalog (A + C), never seeing the images.
+# Endpoint and sampling default to the vlm values above.
 llm:
   model: "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B"
   max_tokens: 512

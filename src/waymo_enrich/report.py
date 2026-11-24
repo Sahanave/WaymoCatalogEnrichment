@@ -15,11 +15,14 @@ from .metrics import load_run, scored_fields
 from .schema import BOOLS
 
 
-def _data(run_dirs, scores, clips_root: Path, out_dir: Path, max_clips: int) -> dict[str, Any]:
+def _data(run_dirs, scores, clips_root: Path, out_dir: Path, max_clips: int, clip_suffixes=(), faq_dir=None) -> dict[str, Any]:
     names = [Path(d).name for d in run_dirs]
     runs = {n: {r["clip_id"]: r for r in load_run(d)} for n, d in zip(names, run_dirs)}
     settings = {n: load_run(d)[0]["settings"] for n, d in zip(names, run_dirs)}
-    clip_ids = list(dict.fromkeys(cid for r in runs.values() for cid in r))[:max_clips]
+    clip_ids = list(dict.fromkeys(cid for r in runs.values() for cid in r))
+    if clip_suffixes:
+        clip_ids = [c for c in clip_ids if any(c.endswith(s) for s in clip_suffixes)]
+    clip_ids = clip_ids[:max_clips]
     fields = list(dict.fromkeys(f for n in names for f in scored_fields(settings[n])))
     extra = ["road_type"] if any("road_type" in (x["pred"] or {}) for n in names for r in runs[n].values()
                                  for x in r.get("frames", [])) and "road_type" not in fields else []
@@ -34,17 +37,20 @@ def _data(run_dirs, scores, clips_root: Path, out_dir: Path, max_clips: int) -> 
                 rec = next((x for x in runs[n].get(cid, {}).get("frames", []) if x["i"] == fr.i), None)
                 if rec:
                     entry["runs"][n] = {"pred": rec["pred"], "changed": rec.get("changed", []), "ok": rec.get("parse_ok", True),
-                                       "trace": rec.get("trace"), "commentary": rec.get("commentary")}
+                                       "trace": rec.get("trace")}
             frames.append(entry)
-        clips.append({"id": cid, "frames": frames})
+        faq = None
+        if faq_dir and (Path(faq_dir) / f"{cid}.json").exists():
+            faq = json.loads((Path(faq_dir) / f"{cid}.json").read_text())
+        clips.append({"id": cid, "frames": frames, "faq": faq})
     return {"runs": names, "scored": {n: scored_fields(settings[n]) for n in names}, "fields": fields + extra,
             "bools": list(BOOLS), "settings": settings, "scores": scores, "clips": clips}
 
 
 def build_report(run_dirs: list[str | Path], scores: list[dict[str, Any]], clips_root: str | Path,
-                 out_path: str | Path, max_clips: int = 5) -> Path:
+                 out_path: str | Path, max_clips: int = 5, clip_suffixes=(), faq_dir=None) -> Path:
     out_path = Path(out_path)
-    data = _data(run_dirs, scores, Path(clips_root), out_path.parent, max_clips)
+    data = _data(run_dirs, scores, Path(clips_root), out_path.parent, max_clips, clip_suffixes, faq_dir)
     payload = json.dumps(data, default=str).replace("</", "<\\/")
     out_path.write_text(TEMPLATE.replace("/*__DATA__*/null", payload), encoding="utf-8")
     return out_path
@@ -75,12 +81,13 @@ td.ok{background:var(--ok)}td.bad{background:var(--bad);color:var(--badt);font-w
 .c.flip::after{content:"";}.grp{margin-top:8px;font-size:12px;font-weight:700;color:#14213D}
 details{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 16px}summary{cursor:pointer;font-weight:600}
 .hint{font-size:12px;color:#8a93a3}
+.step.llm{border-color:#7A9CC6}
 .legend #legend{font-size:13px;line-height:1.5;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:4px 28px;margin-top:8px}
 .legend h4{margin:8px 0 4px;font-size:13px;color:var(--teal)}.legend ul{margin:0;padding-left:18px}.legend li{margin:2px 0}
 .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
 .trace{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 16px}
 .trace h3{margin:0 0 8px;font-size:15px;color:var(--mute)}.step{border-left:4px solid var(--teal);padding:4px 12px;margin:8px 0}
-.step.llm{border-color:#7A9CC6}.step h4{margin:0 0 4px;font-size:13px}.step pre{white-space:pre-wrap;word-break:break-word;margin:4px 0;font:12px/1.4 ui-monospace,Menlo,monospace;background:#F1EFE6;border-radius:8px;padding:8px}
+.step h4{margin:0 0 4px;font-size:13px}.step pre{white-space:pre-wrap;word-break:break-word;margin:4px 0;font:12px/1.4 ui-monospace,Menlo,monospace;background:#F1EFE6;border-radius:8px;padding:8px}
 .step .out{background:var(--tealbg)}.thumbs{display:flex;gap:6px;margin:4px 0}.thumbs img{height:70px;border-radius:6px;border:1px solid var(--line)}
 .step summary{font-weight:500;font-size:12px;color:var(--mute)}
 </style></head><body>
@@ -90,6 +97,7 @@ details{background:var(--card);border:2px solid var(--line);border-radius:14px;p
 <details open class="legend"><summary>How to read this</summary><div id="legend"></div></details>
 <div class="bar"><label>Clip <select id="clip"></select></label><button id="prev">&larr; frame</button><button id="next">frame &rarr;</button><span class="hint">Arrow keys also step through frames.</span></div>
 <div class="view"><div class="imgbox"><img id="img" alt="front camera frame"><div class="stamp" id="stamp"></div></div><div class="panel" id="panel"></div></div>
+<div class="trace" id="faq"></div>
 <div class="trace" id="trace"></div>
 <details><summary>Full scorecard</summary><div id="full"></div></details>
 </main>
@@ -115,8 +123,6 @@ function runDesc(r){const s=(D.settings||{})[r]||{};
  if(s.mode==="temporal")return ["Reads two consecutive frames plus the per_frame labels for the previous frame, and says which of those labels no longer hold (changed), what changed (note), and the ego_motion. It does not relabel the scene and does not use its own earlier output, so errors cannot carry forward.",
   "Everything a single frame can answer comes from per_frame. This run adds only what needs two frames: whether the scene changed, what changed, and how the vehicle is moving."];const ego=s.use_ego?" Ego speed is given (ego_motion unscored).":"";
  if(s.mode==="per_frame")return ["Single VLM call per frame. Sees only the current frame.","The scene as a single moment: lighting, weather, road type, pedestrians and cyclists, with no influence from earlier frames. Useful on its own and as an independent view of each frame."];
- if(s.mode==="rolling"&&s.commentary)return [`Two steps per frame. (1) The VLM sees the previous ${s.prev_frames} and current frame, its own previous commentary and the previous labels, and writes a short commentary. (2) A text-only LLM reads that commentary and returns the labels. Those labels carry forward.`+ego,
-  "A readable running account of the scene: what is there and what changed since the last frame. Adds free-text detail the fixed labels cannot hold, and every label can be traced to the sentence behind it. Looking and labeling are split, so each model does one job."];
  if(s.mode==="rolling")return [`Single VLM call per frame. Sees the previous ${s.prev_frames} and current frame plus its own previous labels.`+ego,
   "Information that needs time: the previous frame shows how the vehicle is moving, and the previous labels keep slow-changing fields like weather and time of day steady. The catch is that a wrong label can be carried forward."];
  return ["",""]}
@@ -133,7 +139,8 @@ function legend(){document.getElementById("legend").innerHTML=`
  <h4>Frame viewer</h4><ul><li><span class="sw" style="background:var(--ok)"></span>model matches Waymo. <span class="sw" style="background:var(--bad)"></span>model disagrees.</li>
  <li>grey / "(unscored)": no ground truth, or a field that is not scored.</li>
  <li><span class="chg">changed</span> fields the model says it changed from the previous frame.</li>
- <li>Input/output panel: <span class="sw" style="background:var(--teal)"></span>VLM step, <span class="sw" style="background:#7A9CC6"></span>LLM step (text only). Green box = model output; "text input" shows the full prompt.</li></ul></div>`}
+ <li>Input/output panel: the frames the VLM was given, its full prompt ("text input") and its raw output (green box).</li>
+ <li>Clip FAQ (blue bar): a text-only LLM answers fixed questions from the A + C label catalog. It never sees the images. Answers with a checkable value are compared with Waymo.</li></ul></div>`}
 function full(){const fs=[...new Set(D.scores.flatMap(s=>Object.keys(s.fields)))];
  let h="<table><tr><th>metric</th>"+D.scores.map(s=>`<th>${s.run}</th>`).join("")+"</tr>";
  fs.forEach(f=>{h+=`<tr><td>${f} accuracy</td>`+D.scores.map(s=>`<td>${pct(s.fields[f]&&s.fields[f].accuracy)}</td>`).join("")+"</tr>"});
@@ -151,16 +158,24 @@ function show(){const f=frame();document.getElementById("img").src=f.img;
  const gc=gtChanged();h+=`<div style="margin-top:8px;font-size:13px"><b>Waymo</b>: ${fi===0?"first frame":gc.length?"changed since previous frame: "+gc.map(c=>`<span class="chg">${c}</span>`).join(""):"no label changed since previous frame"}</div>`;
  D.runs.forEach(r=>{const rec=f.runs[r];if(!rec)return;const ch=(rec.changed||[]).map(c=>`<span class="chg">${c}</span>`).join("");const ev=rec.pred.notable_event;
   h+=`<div style="margin-top:10px;font-size:13px"><b>${r}</b>${ev?` &middot; ${ev}`:""}${ch?`<div>flagged as changed: ${ch}</div>`:""}${rec.changed&&(D.settings[r]||{}).mode==="temporal"&&!ch?'<div class="hint">flagged no changes</div>':""}${rec.ok===false?'<div style="color:#8C1D18">parse failed</div>':""}</div>`});
- document.getElementById("panel").innerHTML=h;trace(f);
+ document.getElementById("panel").innerHTML=h;faq();trace(f);
  document.querySelectorAll(".c").forEach(e=>e.classList.toggle("sel",+e.dataset.i===fi))}
 const esc=t=>String(t==null?"":t).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 function step(kind,title,s){const imgs=(s.input.images||[]).map(i=>`<figure style="margin:0"><img src="${clip().frames[i].img}"><figcaption class="hint">frame ${i+1} (${clip().frames[i].t}s)</figcaption></figure>`).join("");
  return `<div class="step ${kind}"><h4>${title}</h4>${imgs?`<div class="hint">image input</div><div class="thumbs">${imgs}</div>`:`<div class="hint">no image input (text only)</div>`}
  <details><summary>text input</summary><pre>${esc(s.input.text)}</pre></details><div class="hint">output</div><pre class="out">${esc(s.output)}</pre></div>`}
-function trace(f){let h="<h3>What each model was given and what it said (this frame)</h3>";let any=false;
+function faq(){const el=document.getElementById("faq"),q=clip().faq;if(!q){el.style.display="none";return}el.style.display="";
+ const ok=q.items.filter(i=>i.correct!==null);const n=ok.filter(i=>i.correct).length;
+ const badge=i=>i.correct===null?"":i.correct?'<span class="chg">matches Waymo</span>':'<span class="chg" style="background:var(--bad);color:var(--badt)">differs from Waymo</span>';
+ const val=v=>v===null||v===undefined?"never / unknown":String(v);
+ el.innerHTML=`<h3>Clip FAQ: a text-only LLM answers from the A + C label catalog (${n}/${ok.length} checkable answers match Waymo)</h3>
+ <details><summary>Catalog the LLM was given (no images)</summary><pre style="white-space:pre-wrap;font:12px/1.4 ui-monospace,Menlo,monospace;background:#F1EFE6;border-radius:8px;padding:8px">${esc(q.catalog)}</pre></details>`+
+ q.items.map(i=>`<div class="step llm"><h4>${esc(i.question)}</h4><pre class="out">${esc(i.answer==null?"(no parsable answer)":i.answer)}</pre>
+  ${i.correct===null?"":`<div class="hint">LLM value: <b>${val(i.value)}</b> &middot; Waymo: <b>${val(i.gt)}</b> ${badge(i)}</div>`}
+  <details><summary>text input and raw output</summary><pre>${esc(i.input)}\n\n--- output ---\n${esc(i.output)}</pre></details></div>`).join("")}
+function trace(f){let h="<h3>What the VLM was given and what it said (this frame)</h3>";let any=false;
  D.runs.forEach(r=>{const rec=f.runs[r];if(!rec||!rec.trace)return;any=true;h+=`<div class="grp">${r}</div>`;
-  if(rec.trace.vlm)h+=step("vlm",rec.trace.llm?"Step 1 · VLM (sees the frames, writes commentary)":"VLM (sees the frames, returns labels as JSON)",rec.trace.vlm);
-  if(rec.trace.llm)h+=step("llm","Step 2 · LLM (text only, structures the commentary into labels)",rec.trace.llm)});
+  if(rec.trace.vlm)h+=step("vlm","VLM: sees the frames, returns JSON",rec.trace.vlm)});
  document.getElementById("trace").innerHTML=any?h:"<h3>No input/output trace in these runs (re-run label to record it)</h3>"}
 function init(){const sel=document.getElementById("clip");D.clips.forEach((c,i)=>{const o=document.createElement("option");o.value=i;o.textContent=c.id.slice(0,16);sel.appendChild(o)});
  sel.onchange=()=>{ci=+sel.value;fi=0;show()};

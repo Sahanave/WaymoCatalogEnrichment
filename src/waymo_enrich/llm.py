@@ -27,7 +27,7 @@ def load_config(path: Optional[str | Path] = None) -> dict[str, Any]:
     vlm = cfg.setdefault("vlm", {})
     vlm["base_url"] = os.getenv("VLM_BASE_URL") or vlm.get("base_url")
     vlm["model"] = os.getenv("VLM_MODEL") or vlm.get("model")
-    llm = cfg.setdefault("llm", {})  # text-only structuring model; inherits endpoint/sampling from vlm
+    llm = cfg.setdefault("llm", {})  # text-only model for catalog FAQs; inherits endpoint/sampling from vlm
     for k in ("base_url", "temperature", "top_p", "max_tokens", "enable_thinking", "retries"):
         llm.setdefault(k, vlm.get(k))
     llm["model"] = os.getenv("LLM_MODEL") or llm.get("model")
